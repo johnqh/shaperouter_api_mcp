@@ -1,0 +1,16 @@
+{
+  "name": "shaperouter",
+  "description": "Sudobility's ShapeRouter plugin — MCP tools, documentation resources, and a guided skill for building structured-output LLM endpoints",
+  "owner": {
+    "name": "Sudobility",
+    "email": "support@sudobility.com"
+  },
+  "plugins": [
+    {
+      "name": "shaperouter",
+      "description": "ShapeRouter structured-output LLM endpoints — build, invoke, debug, and audit them via the ShapeRouter API",
+      "category": "ai",
+      "source": "./"
+    }
+  ]
+}

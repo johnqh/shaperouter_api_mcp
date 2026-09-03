@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "shaperouter-api": {
+      "command": "bun",
+      "args": [
+        "run",
+        "${CLAUDE_PLUGIN_ROOT}/src/index.ts"
+      ],
+      "env": {
+        "SHAPEROUTER_API_URL": "${SHAPEROUTER_API_URL:-https://api.shaperouter.com}",
+        "SHAPEROUTER_ENTITY_API_KEY": "${SHAPEROUTER_ENTITY_API_KEY:-}",
+        "SHAPEROUTER_API_KEY": "${SHAPEROUTER_API_KEY:-}",
+        "SHAPEROUTER_AUTH_TOKEN": "${SHAPEROUTER_AUTH_TOKEN:-}",
+        "SHAPEROUTER_PROJECT_API_KEY": "${SHAPEROUTER_PROJECT_API_KEY:-}",
+        "SHAPEROUTER_ENTITY_SLUG": "${SHAPEROUTER_ENTITY_SLUG:-}",
+        "SHAPEROUTER_ORG_PATH": "${SHAPEROUTER_ORG_PATH:-}"
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "shaperouter",
+  "description": "ShapeRouter structured-output LLM endpoints \u2014 build, invoke, debug, and audit them via the ShapeRouter API",
+  "version": "0.0.1",
+  "author": {
+    "name": "Sudobility",
+    "email": "support@sudobility.com"
+  }
+}
