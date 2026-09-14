@@ -1,6 +1,7 @@
 {
   "name": "@sudobility/shaperouter_api_mcp",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "private": true,
   "description": "MCP server for the ShapeRouter API - lets AI assistants describe, configure, and invoke structured-output LLM endpoints",
   "type": "module",
   "license": "BUSL-1.1",
