@@ -19,7 +19,9 @@ latency, and cost accounting.
 - Base path: \`/api/v1\` (health checks live outside it)
 - Production base URL: \`https://api.shaperouter.com\`
 - Supported providers: OpenAI, Anthropic, Google Gemini, Mistral, Cohere, Groq,
-  xAI, DeepSeek, Perplexity, and any OpenAI-compatible server via \`lm_studio\`
+  xAI, DeepSeek, Perplexity, any OpenAI-compatible server via \`lm_studio\`, and
+  Jev (TypeSafe AI) -- see the provider table below, since Jev only answers
+  boolean/enum output schema fields, not arbitrary structured JSON
 
 ## The object hierarchy
 
@@ -378,7 +380,7 @@ interface LlmApiKeySafe {
   uuid: string; entity_id: string;
   key_name: string;
   provider: "openai" | "anthropic" | "gemini" | "mistral" | "cohere"
-          | "groq" | "xai" | "deepseek" | "perplexity" | "lm_studio";
+          | "groq" | "xai" | "deepseek" | "perplexity" | "lm_studio" | "jev";
   has_api_key: boolean;                        // whether a secret is stored
   endpoint_url: string | null;                 // required for lm_studio
   is_active: boolean | null;                   // null means true
@@ -942,10 +944,11 @@ tools as the source of truth and this page as orientation.
 | \`deepseek\` | DeepSeek | OpenAI-compatible surface |
 | \`perplexity\` | Perplexity | Search-grounded Sonar models |
 | \`lm_studio\` | LM Studio / Custom | Any OpenAI-compatible server; requires \`endpoint_url\`, accepts arbitrary model names |
+| \`jev\` | Jev (TypeSafe AI) | Not a text generator -- answers pre-declared Choice/Score/Noul questions. Only usable when every output schema field is a boolean or a string with an \`enum\`; anything else (free text, numbers, arrays, nested objects) fails |
 
 Internally, Mistral, Cohere, xAI, DeepSeek, and Perplexity are all driven through
-the OpenAI-compatible provider implementation. Anthropic, Gemini, Groq, and
-custom servers have dedicated implementations.
+the OpenAI-compatible provider implementation. Anthropic, Gemini, Groq, custom
+servers, and Jev each have dedicated implementations.
 
 ## Choosing a model
 

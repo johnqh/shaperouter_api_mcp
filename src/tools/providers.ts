@@ -21,11 +21,15 @@ const providerIds = [
   "deepseek",
   "perplexity",
   "lm_studio",
+  "jev",
 ] as const;
 
 const providerSchema = z
   .enum(providerIds)
-  .describe("Provider id (lm_studio covers any OpenAI-compatible self-hosted server)");
+  .describe(
+    "Provider id (lm_studio covers any OpenAI-compatible self-hosted server; jev is TypeSafe AI's " +
+      "Jev, which only answers boolean or string-enum output schema fields -- not free text)"
+  );
 
 export function registerProviderTools(server: McpServer) {
   server.tool(

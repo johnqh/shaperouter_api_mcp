@@ -64,6 +64,7 @@ export function registerKeyTools(server: McpServer) {
           "deepseek",
           "perplexity",
           "lm_studio",
+          "jev",
         ])
         .describe("Provider this key authenticates against"),
       api_key: z.string().optional().describe("Provider secret; required unless provider is lm_studio"),
