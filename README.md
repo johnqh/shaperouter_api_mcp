@@ -6,15 +6,17 @@ that returns schema-conformant JSON.
 
 It gives an AI assistant four things:
 
-- **61 tools** covering every ShapeRouter API route — entities, LLM provider keys,
-  projects, endpoints, analytics, rate limits, storage, users, and AI invocation.
+- **65 tools** covering every ShapeRouter API route — entities, entity API keys,
+  LLM provider keys, projects, endpoints, analytics, rate limits, storage, users,
+  personal API keys, and AI invocation.
 - **6 documentation resources** describing the API itself (overview, routes, data
   model, worked examples, errors, providers) — readable with no credentials and no
   network call.
 - **3 prompt templates** for common workflows: set up an endpoint, debug one, audit
   an entity.
-- **The `/shaperouter-endpoint` skill** — a guided workflow for building, invoking,
-  debugging, and auditing endpoints, shipped as a Claude Code plugin.
+- **Two skills** shipped as a Claude Code plugin — `/shaperouter-endpoint` (build,
+  invoke, debug, audit a single endpoint) and `/shaperouter-providers` (manage a
+  workspace's provider keys, projects, endpoints, and entity API keys).
 
 **Package**: `@sudobility/shaperouter_api_mcp` (BUSL-1.1)
 
@@ -52,7 +54,8 @@ Highest priority first:
 | Variable | Required | Description |
 |---|---|---|
 | `SHAPEROUTER_API_URL` | No | Base URL of the API. Default `https://api.shaperouter.com`; use `http://localhost:3000` for local dev |
-| `SHAPEROUTER_API_KEY` | For admin tools | Personal API key (`shroute_...`) — preferred, never expires |
+| `SHAPEROUTER_ENTITY_API_KEY` | For entity-scoped tools | Entity API key (`shrouteent_...`) — acts as the entity/workspace, never expires |
+| `SHAPEROUTER_API_KEY` | For admin + user tools | Personal API key (`shroute_...`) — acts as a user, never expires |
 | `SHAPEROUTER_AUTH_TOKEN` | Only to create/reveal keys | Firebase ID token of the signed-in user |
 | `SHAPEROUTER_PROJECT_API_KEY` | For AI tools | Project API key (`sk_live_...`) |
 | `SHAPEROUTER_ENTITY_SLUG` | No | Default entity slug, so tools can omit `entitySlug` |
@@ -63,16 +66,20 @@ The server starts with no credentials at all — the documentation resources, th
 provider catalog, and the health checks are public. Tools that need a credential
 return a clear error saying how to get one.
 
-**Two key types, different jobs.** `shroute_...` is a *personal* key that
-authenticates you against the admin routes. `sk_live_...` is a *project* key that
-lets callers invoke one project's AI endpoints. Creating and revealing personal
-keys is the one thing a personal key cannot do — that needs a Firebase ID token,
-so a leaked key cannot mint more.
+**Four credentials, different jobs.** `shroute_...` is a *personal* key that
+authenticates you (a user) against the admin and user routes. `shrouteent_...` is
+an *entity* key that acts as the workspace itself — ideal for an unattended agent,
+but it cannot reach `/users/*` or manage API keys. `sk_live_...` is a *project*
+key that lets callers invoke one project's AI endpoints. A Firebase ID token is
+the signed-in user's session token, required only to create or reveal personal API
+keys — the one thing a personal key cannot do, so a leaked key cannot mint more.
+The API routes each credential by its prefix, so sending the wrong one reads as an
+invalid key.
 
 ### Option A: Install as a Claude Code plugin (recommended)
 
-This makes the MCP tools, the documentation resources, **and** the
-`/shaperouter-endpoint` skill available in any project.
+This makes the MCP tools, the documentation resources, **and** both skills
+(`/shaperouter-endpoint` and `/shaperouter-providers`) available in any project.
 
 ```bash
 # Register this repo as a marketplace, then install the plugin from it
@@ -80,7 +87,7 @@ claude plugin marketplace add /path/to/shaperouter_api_mcp
 claude plugin install shaperouter@shaperouter
 ```
 
-Verify with `claude plugin details shaperouter@shaperouter`, which lists the skill
+Verify with `claude plugin details shaperouter@shaperouter`, which lists the skills
 and the MCP server.
 
 The plugin is installed as a **copy** under
@@ -100,7 +107,7 @@ The plugin is defined by:
 - `.claude-plugin/plugin.json` — plugin metadata
 - `.claude-plugin/marketplace.json` — marketplace entry
 - `.mcp.json` — MCP server declaration (reads `SHAPEROUTER_*` from your environment)
-- `skills/shaperouter-endpoint/` — the `/shaperouter-endpoint` skill
+- `skills/` — the `/shaperouter-endpoint` and `/shaperouter-providers` skills
 
 ### Option B: Add the MCP server manually
 
@@ -143,6 +150,14 @@ that might be committed. Environment variables still work, and take precedence.
 | `create_api_key`, `reveal_api_key` | Mint or re-read a key — **Firebase token required** |
 | `update_api_key` | Rename, or `is_active: false` to pause a key reversibly |
 | `delete_api_key` | Permanent revocation |
+
+### Entity API keys
+
+Workspace-scoped keys (`shrouteent_...`) that act as the entity itself. Create one
+while authenticated as a human; it is shown exactly once.
+
+`list_entity_api_keys`, `create_entity_api_key`, `update_entity_api_key`,
+`revoke_entity_api_key`
 
 ### Providers (public)
 
@@ -250,6 +265,16 @@ Bundled references:
 - `skills/shaperouter-endpoint/references/creating-endpoints.md` — `create_endpoint` field reference and six worked recipes, each pairing an input payload with its schemas and response
 - `skills/shaperouter-endpoint/references/schema-design.md` — output schemas models actually satisfy
 - `skills/shaperouter-endpoint/references/model-selection.md` — picking a provider and model from capabilities and pricing
+- `skills/shaperouter-endpoint/references/authentication.md` — the credentials, their prefixes, and which route accepts which
+
+## The `/shaperouter-providers` skill
+
+Also installed with the plugin, this skill manages a workspace's LLM provider
+keys, projects, and endpoints using an **entity API key** (`shrouteent_...`) —
+the workspace-scoped credential suited to unattended agents and CI. Use it for
+rotating provider keys, wiring endpoints to models, and managing the entity's own
+API keys; use `/shaperouter-endpoint` for designing and debugging an individual
+endpoint's schema and prompt.
 
 ## Development
 
@@ -279,12 +304,15 @@ src/
 └── tools/              # One module per route family
 
 skills/
-└── shaperouter-endpoint/
-    ├── SKILL.md                        # The /shaperouter-endpoint skill
-    └── references/
-        ├── creating-endpoints.md       # create_endpoint recipes with payload examples
-        ├── schema-design.md            # Output schema design guide
-        └── model-selection.md          # Provider and model selection guide
+├── shaperouter-endpoint/               # The /shaperouter-endpoint skill
+│   ├── SKILL.md
+│   └── references/
+│       ├── creating-endpoints.md       # create_endpoint recipes with payload examples
+│       ├── schema-design.md            # Output schema design guide
+│       ├── model-selection.md          # Provider and model selection guide
+│       └── authentication.md           # Credentials and which route accepts which
+└── shaperouter-providers/              # The /shaperouter-providers skill
+    └── SKILL.md
 
 .claude-plugin/         # plugin.json + marketplace.json
 .mcp.json               # MCP server declaration used by the plugin
@@ -299,8 +327,8 @@ ShapeRouter API MCP server (this project)
     ↕ HTTP / REST
 ShapeRouter API (Hono on Bun, PostgreSQL)
     ↕
-10 LLM providers (OpenAI, Anthropic, Gemini, Groq, Mistral, xAI, DeepSeek,
-                  Perplexity, Cohere, LM Studio)
+11 LLM providers (OpenAI, Anthropic, Gemini, Groq, Mistral, xAI, DeepSeek,
+                  Perplexity, Cohere, LM Studio, Jev/TypeSafe AI)
 ```
 
 The server is a thin HTTP client. Each tool maps to one REST route, and the right
